@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using PowerPointService.Models;
 using PowerPointService.Types;
 
 namespace PowerPointService.Services;
@@ -43,7 +44,7 @@ public sealed class PowerPointService : IPowerPointService
             await file.CopyToAsync(fileStream, cancellationToken);
             var presentationModel = new PresentationModel
             {
-                Id = Guid.CreateVersion7(),
+                Id = Guid.NewGuid(),
                 Name = file.FileName,
                 FullFileName = fullFileName,
                 State = PresentationStates.Adding
@@ -76,6 +77,51 @@ public sealed class PowerPointService : IPowerPointService
             this.logger.LogError(e, "fileName: {FileName}", file.FileName);
             return null;
         }
+    }
+
+    public async Task<VideosDto> GetVideosAsync(Guid id, CancellationToken cancellationToken)
+    {
+        var videos = await this.databaseRepository.GetVideosWithPresentationAsync(id, cancellationToken);
+
+        return this.Map(videos);
+    }
+
+    public async Task<VideoContentDto> GetVideoContentAsync(Guid id, CancellationToken cancellationToken) => 
+        await this.databaseRepository.GetVideoAsync(id, cancellationToken);
+
+    #endregion
+
+    #region Private Methods
+
+    private VideosDto Map(IEnumerable<VideosWithPresentation> videos)
+    {
+        if (videos.Any())
+        {
+            var videosDto = new VideosDto();
+            var presentationModel = videos.First().MapToPresentation();
+            videosDto.Presentation = presentationModel;
+
+            var groupBySlideIds = videos.GroupBy(v => v.SlideId);
+            foreach (var groupBySlideId in groupBySlideIds)
+            {
+                var grouped = new GroupedBySlide
+                {
+                    SlideId = groupBySlideId.Key,
+                    Videos = []
+                };
+
+                foreach (var video in groupBySlideId)
+                {
+                    grouped.Videos.Add(video.MapToVideo());
+                }
+
+                videosDto.Videos.Add(grouped);
+            }
+
+            return videosDto;
+        }
+
+        return null;
     }
 
     #endregion

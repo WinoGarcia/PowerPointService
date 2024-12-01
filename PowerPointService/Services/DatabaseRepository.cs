@@ -1,5 +1,6 @@
 ﻿using System.Data;
 using Dapper;
+using PowerPointService.Models;
 using PowerPointService.Types;
 
 namespace PowerPointService.Services;
@@ -57,6 +58,42 @@ public class DatabaseRepository : IDatabaseRepository
             """;
 
         return await this.dbConnection.ExecuteAsync(insertQuery, videoModels);
+    }
+
+    public async Task<IEnumerable<VideosWithPresentation>> GetVideosWithPresentationAsync(Guid id, CancellationToken cancellationToken)
+    {
+        const string query =
+            """                 
+            SELECT 
+                v.PresentationId,
+                v.SlideId,
+                v.Id,
+                v.Name,
+                v.FullFileName,
+                v.Duration,
+                p.Name AS PresentationName,
+                p.FullFileName AS PresentationFileName,
+                p.State AS PresentationState
+            FROM Videos v
+            INNER JOIN Presentations p ON v.PresentationId = p.Id
+            WHERE v.PresentationId = @PresentationId
+            """;
+
+        return await this.dbConnection.QueryAsync<VideosWithPresentation>(query, new { PresentationId = id });
+    }
+
+    public async Task<VideoContentDto> GetVideoAsync(Guid id, CancellationToken cancellationToken)
+    {
+        const string query =
+            """                 
+            SELECT 
+                Name, 
+                FullFileName
+            FROM Videos 
+            WHERE Id = @VideoId
+            """;
+
+        return await this.dbConnection.QuerySingleOrDefaultAsync<VideoContentDto>(query, new { VideoId = id });
     }
 
     #endregion

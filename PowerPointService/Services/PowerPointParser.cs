@@ -2,6 +2,7 @@
 using DocumentFormat.OpenXml.Presentation;
 using Microsoft.Extensions.Options;
 using PowerPointService.Helpers;
+using PowerPointService.Models;
 using PowerPointService.Types;
 
 namespace PowerPointService.Services;
@@ -82,7 +83,7 @@ public class PowerPointParser : IPowerPointParser
         MediaDataPart mediaDataPart,
         CancellationToken cancellationToken)
     {
-        var fileId = Guid.CreateVersion7();
+        var fileId = Guid.NewGuid();
         var fileName = $"v_{slideCount}_{fileId}{mediaDataPart.MapExtension()}";
         var fullVideoFileName = Path.Combine(this.options.PathBase, this.options.VideoPath, fileName);
 

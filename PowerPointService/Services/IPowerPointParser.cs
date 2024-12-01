@@ -1,4 +1,5 @@
-﻿using PowerPointService.Types;
+﻿using PowerPointService.Models;
+using PowerPointService.Types;
 
 namespace PowerPointService.Services;
 

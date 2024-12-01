@@ -1,6 +1,7 @@
 ﻿using System.Text.Json.Serialization;
+using PowerPointService.Types;
 
-namespace PowerPointService.Types;
+namespace PowerPointService.Models;
 
 public record PresentationModel
 {
