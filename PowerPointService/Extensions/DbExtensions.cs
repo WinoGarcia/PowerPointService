@@ -43,7 +43,7 @@ public static class DbExtensions
     {
         serviceCollection.AddSingleton<IDbConnection>(_ =>
         {
-            var connection = new SqliteConnection("Data Source=InMemory;Mode=Memory;Cache=Shared"); //"Data Source=filedatabase.db"); 
+            var connection = new SqliteConnection("Data Source=InMemory;Mode=Memory;Cache=Shared");
             connection.Open();
             InitializeDatabase(connection);
             return connection;
