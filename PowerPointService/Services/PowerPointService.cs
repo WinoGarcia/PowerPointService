@@ -103,7 +103,7 @@ public sealed class PowerPointService : IPowerPointService
                     grouped.Videos.Add(video.MapToVideo());
                 }
 
-                videosDto.Videos.Add(grouped);
+                videosDto.GroupedVideos.Add(grouped);
             }
 
             return videosDto;
