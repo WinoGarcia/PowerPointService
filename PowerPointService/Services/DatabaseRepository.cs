@@ -97,8 +97,4 @@ public class DatabaseRepository : IDatabaseRepository
     }
 
     #endregion
-
-    #region Private Methods
-
-    #endregion
 }

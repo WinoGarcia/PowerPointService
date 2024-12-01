@@ -44,7 +44,7 @@ public sealed class PowerPointService : IPowerPointService
             await file.CopyToAsync(fileStream, cancellationToken);
             var presentationModel = new PresentationModel
             {
-                Id = Guid.NewGuid(),
+                Id = Guid.CreateVersion7(),
                 Name = file.FileName,
                 FullFileName = fullFileName,
                 State = PresentationStates.Adding
@@ -56,19 +56,7 @@ public sealed class PowerPointService : IPowerPointService
                 return presentationModel;
             }
 
-            var videoModels = await this.powerPointParser.ParseFileAsync(presentationModel.Id, fileStream, cancellationToken);
-            if (videoModels.Any())
-            {
-                result = await this.databaseRepository.InsertVideosAsync(videoModels, cancellationToken);
-                if (result != 0)
-                {
-                    result = await this.databaseRepository.UpdatePresentationStateAsync(presentationModel.Id, PresentationStates.Added, cancellationToken);
-                    if (result != 0)
-                    {
-                        presentationModel.State = PresentationStates.Added;
-                    }
-                }
-            }
+            var _ = Task.Run(() => this.powerPointParser.ParseFileAsync(presentationModel.Id, presentationModel.FullFileName, CancellationToken.None), CancellationToken.None);
 
             return presentationModel;
         }
@@ -83,17 +71,17 @@ public sealed class PowerPointService : IPowerPointService
     {
         var videos = await this.databaseRepository.GetVideosWithPresentationAsync(id, cancellationToken);
 
-        return this.Map(videos);
+        return Map(videos);
     }
 
-    public async Task<VideoContentDto> GetVideoContentAsync(Guid id, CancellationToken cancellationToken) => 
+    public async Task<VideoContentDto> GetVideoContentAsync(Guid id, CancellationToken cancellationToken) =>
         await this.databaseRepository.GetVideoAsync(id, cancellationToken);
 
     #endregion
 
     #region Private Methods
 
-    private VideosDto Map(IEnumerable<VideosWithPresentation> videos)
+    private static VideosDto Map(IEnumerable<VideosWithPresentation> videos)
     {
         if (videos.Any())
         {

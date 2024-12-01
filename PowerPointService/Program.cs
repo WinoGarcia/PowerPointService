@@ -19,8 +19,8 @@ builder.Services
     });
 
 builder.Services.Configure<SettingOptions>(configuration.GetSection(SettingOptions.Settings));
-builder.Services.AddDatabase();
 
+builder.Services.AddDatabase();
 builder.Services.AddSingleton<IFFMpegService, FFMpegService>();
 builder.Services.AddScoped<IPowerPointParser, PowerPointParser>();
 builder.Services.AddScoped<IPowerPointService, PowerPointService.Services.PowerPointService>();

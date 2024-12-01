@@ -29,11 +29,11 @@ public class SlidesController : ControllerBase
 
     #region Endpoints
 
-    [HttpPost("[action]", Name = "UploadFile")]
+    [HttpPost("[action]", Name = "UploadPresentation")]
     [Produces(MediaTypeNames.Application.Json)]
     [ProducesResponseType(typeof(PresentationModel), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<Guid>> UploadFileAsync(
+    public async Task<ActionResult<Guid>> UploadPresentationAsync(
         [Required] IFormFile file,
         CancellationToken cancellationToken)
     {
@@ -75,7 +75,7 @@ public class SlidesController : ControllerBase
         if (videoContent is not null)
         {
             var file = await System.IO.File.ReadAllBytesAsync(videoContent.FullFileName, cancellationToken);
-            return this.File(file, "application/octet-stream", videoContent.Name);
+            return this.File(file, MediaTypeNames.Application.Octet, videoContent.Name);
         }
 
         return this.NotFound();
