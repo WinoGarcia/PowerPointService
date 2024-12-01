@@ -2,6 +2,6 @@
 
 public enum PresentationStates
 {
-    Adding = 0,
-    Added = 1
+    Adding = 1,
+    Added = 2
 }

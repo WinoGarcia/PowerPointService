@@ -1,4 +1,6 @@
-﻿namespace PowerPointService.Types;
+﻿using System.Text.Json.Serialization;
+
+namespace PowerPointService.Types;
 
 public record PresentationModel
 {
@@ -6,7 +8,8 @@ public record PresentationModel
 
     public string Name { get; init; }
 
+    [JsonIgnore]
     public string FullFileName { get; set; }
-
+    
     public PresentationStates State { get; set; }
 }

@@ -8,18 +8,22 @@ namespace PowerPointService.Services;
 
 public class PowerPointParser : IPowerPointParser
 {
-    private readonly IFFMpegService ffMpegProvider;
-
     #region Private Fields
 
     private readonly SettingOptions options;
+    private readonly IDatabaseRepository _databaseRepository;
+    private readonly IFFMpegService ffMpegProvider;
 
     #endregion
 
     #region Constructors
 
-    public PowerPointParser(IOptions<SettingOptions> options, IFFMpegService ffMpegProvider)
+    public PowerPointParser(
+        IOptions<SettingOptions> options,
+        IDatabaseRepository databaseRepository,
+        IFFMpegService ffMpegProvider)
     {
+        this._databaseRepository = databaseRepository;
         this.ffMpegProvider = ffMpegProvider;
         this.options = options.Value;
     }
@@ -68,6 +72,10 @@ public class PowerPointParser : IPowerPointParser
         return videoModels;
     }
 
+    #endregion
+
+    #region Private Methods
+
     private async Task<VideoModel> SaveVideoAsync(
         Guid presentationId,
         int slideCount,
@@ -95,10 +103,6 @@ public class PowerPointParser : IPowerPointParser
             Duration = mediaInfo.Duration
         };
     }
-
-    #endregion
-
-    #region Private Methods
 
     #endregion
 }

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Microsoft.OpenApi.Models;
+using PowerPointService.Extensions;
 using PowerPointService.Services;
 using PowerPointService.Types;
 
@@ -18,7 +19,7 @@ builder.Services
     });
 
 builder.Services.Configure<SettingOptions>(configuration.GetSection(SettingOptions.Settings));
-var options = configuration.GetSection(SettingOptions.Settings).Get<SettingOptions>();
+builder.Services.AddDatabase();
 
 builder.Services.AddSingleton<IFFMpegService, FFMpegService>();
 builder.Services.AddScoped<IPowerPointParser, PowerPointParser>();

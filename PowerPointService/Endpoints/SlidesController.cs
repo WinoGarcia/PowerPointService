@@ -41,7 +41,7 @@ public class SlidesController : ControllerBase
         var presentationModel = await this.powerPointService.SaveFileAsync(file, cancellationToken);
         if (presentationModel is not null)
         {
-            return this.Ok(this.powerPointService);
+            return this.Ok(presentationModel);
         }
 
         return this.BadRequest();

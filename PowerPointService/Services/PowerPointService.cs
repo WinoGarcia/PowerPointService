@@ -8,6 +8,7 @@ public sealed class PowerPointService : IPowerPointService
     #region Private Fields
 
     private readonly ILogger<PowerPointService> logger;
+    private readonly IDatabaseRepository databaseRepository;
     private readonly SettingOptions options;
     private readonly IPowerPointParser powerPointParser;
 
@@ -18,9 +19,11 @@ public sealed class PowerPointService : IPowerPointService
     public PowerPointService(
         ILogger<PowerPointService> logger,
         IOptions<SettingOptions> options,
+        IDatabaseRepository databaseRepository,
         IPowerPointParser powerPointParser)
     {
         this.logger = logger;
+        this.databaseRepository = databaseRepository;
         this.options = options.Value;
         this.powerPointParser = powerPointParser;
     }
@@ -46,7 +49,25 @@ public sealed class PowerPointService : IPowerPointService
                 State = PresentationStates.Adding
             };
 
+            var result = await this.databaseRepository.InsertPresentationAsync(presentationModel, cancellationToken);
+            if (result == 0)
+            {
+                return presentationModel;
+            }
+
             var videoModels = await this.powerPointParser.ParseFileAsync(presentationModel.Id, fileStream, cancellationToken);
+            if (videoModels.Any())
+            {
+                result = await this.databaseRepository.InsertVideosAsync(videoModels, cancellationToken);
+                if (result != 0)
+                {
+                    result = await this.databaseRepository.UpdatePresentationStateAsync(presentationModel.Id, PresentationStates.Added, cancellationToken);
+                    if (result != 0)
+                    {
+                        presentationModel.State = PresentationStates.Added;
+                    }
+                }
+            }
 
             return presentationModel;
         }
