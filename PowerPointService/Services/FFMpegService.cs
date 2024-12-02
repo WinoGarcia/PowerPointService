@@ -24,8 +24,4 @@ public class FFMpegService : IFFMpegService
         FFmpeg.GetMediaInfo(fileName, cancellationToken);
 
     #endregion
-
-    #region Private Methods
-
-    #endregion
 }

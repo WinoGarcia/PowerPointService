@@ -8,7 +8,7 @@ namespace PowerPointService.Extensions;
 
 public static class DbExtensions
 {
-    #region Conts
+    #region Consts
 
     /// <see cref="PresentationModel"/>
     private const string createPresentationsTable =
