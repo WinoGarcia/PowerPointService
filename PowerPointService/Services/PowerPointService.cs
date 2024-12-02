@@ -39,9 +39,11 @@ public sealed class PowerPointService : IPowerPointService
         {
             var fullFileName = Path.Combine(this.options.PathBase, file.FileName);
 
-            await using var fileStream = new FileStream(fullFileName, FileMode.Create);
+            await using (var fileStream = new FileStream(fullFileName, FileMode.Create, FileAccess.Write))
+            {
+                await file.CopyToAsync(fileStream, cancellationToken);
+            }
 
-            await file.CopyToAsync(fileStream, cancellationToken);
             var presentationModel = new PresentationModel
             {
                 Id = Guid.CreateVersion7(),
@@ -56,7 +58,7 @@ public sealed class PowerPointService : IPowerPointService
                 return presentationModel;
             }
 
-            var _ = Task.Run(() => this.powerPointParser.ParseFileAsync(presentationModel.Id, presentationModel.FullFileName, CancellationToken.None), CancellationToken.None);
+            var _ = Task.Run(() => this.ExtractVideosAsync(presentationModel, CancellationToken.None), CancellationToken.None);
 
             return presentationModel;
         }
@@ -80,6 +82,28 @@ public sealed class PowerPointService : IPowerPointService
     #endregion
 
     #region Private Methods
+
+    private async Task ExtractVideosAsync(PresentationModel presentation, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var videoModels = await this.powerPointParser.ParseFileAsync(presentation.Id, presentation.FullFileName, cancellationToken);
+            if (videoModels.Any())
+            {
+                await this.databaseRepository.InsertVideosAsync(videoModels, cancellationToken);
+            }
+        }
+        catch (Exception e)
+        {
+            this.logger.LogError(e, "presentationId: {PresentationId} fullFileName: {FullFileName}",
+                presentation.Id,
+                presentation.FullFileName);
+        }
+        finally
+        {
+            await this.databaseRepository.UpdatePresentationStateAsync(presentation.Id, PresentationStates.Added, cancellationToken);
+        }
+    }
 
     private static VideosDto Map(IEnumerable<VideosWithPresentation> videos)
     {

@@ -40,55 +40,37 @@ public class PowerPointParser : IPowerPointParser
     {
         var videoModels = new List<VideoModel>();
 
-        try
+        using var presentation = PresentationDocument.Open(fullFileName, false);
+        if (presentation.PresentationPart is null)
         {
-            using var presentation = PresentationDocument.Open(fullFileName, false);
-            if (presentation.PresentationPart is null)
-            {
-                return videoModels;
-            }
+            return videoModels;
+        }
 
-            var slideIdList = presentation.PresentationPart.Presentation.SlideIdList;
-            if (slideIdList is null)
-            {
-                return videoModels;
-            }
+        var slideIdList = presentation.PresentationPart.Presentation.SlideIdList;
+        if (slideIdList is null)
+        {
+            return videoModels;
+        }
 
-            var slideCount = 0;
-            foreach (var slideId in slideIdList.Elements<SlideId>())
+        var slideCount = 0;
+        foreach (var slideId in slideIdList.Elements<SlideId>())
+        {
+            if (slideId.RelationshipId is not null)
             {
-                if (slideId.RelationshipId is not null)
+                var slidePart = presentation.PresentationPart.GetPartById(slideId.RelationshipId);
+
+                var videoReferenceRelationship = slidePart.DataPartReferenceRelationships.Where(d => d is VideoReferenceRelationship);
+                foreach (var videoReference in videoReferenceRelationship)
                 {
-                    var slidePart = presentation.PresentationPart.GetPartById(slideId.RelationshipId);
-
-                    var videoReferenceRelationship = slidePart.DataPartReferenceRelationships.Where(d => d is VideoReferenceRelationship);
-                    foreach (var videoReference in videoReferenceRelationship)
+                    if (videoReference.DataPart is MediaDataPart mediaDataPart)
                     {
-                        if (videoReference.DataPart is MediaDataPart mediaDataPart)
-                        {
-                            var videoModel = await this.SaveVideoAsync(presentationId, slideCount, mediaDataPart, cancellationToken);
-                            videoModels.Add(videoModel);
-                        }
+                        var videoModel = await this.SaveVideoAsync(presentationId, slideCount, mediaDataPart, cancellationToken);
+                        videoModels.Add(videoModel);
                     }
                 }
-
-                slideCount++;
             }
 
-            if (videoModels.Any())
-            {
-                var result = await this.databaseRepository.InsertVideosAsync(videoModels, cancellationToken);
-                if (result != 0)
-                {
-                    await this.databaseRepository.UpdatePresentationStateAsync(presentationId, PresentationStates.Added, cancellationToken);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            this.logger.LogError(e, "presentationId: {PresentationId} fullFileName: {FullFileName}",
-                presentationId,
-                fullFileName);
+            slideCount++;
         }
 
         return videoModels;
